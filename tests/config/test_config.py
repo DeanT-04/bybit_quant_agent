@@ -285,4 +285,3 @@ LOG_FILE=custom_app.log
     config = load_config(config_path=str(yaml_file), env_path=str(env_file))
     assert config.logging.log_dir == "custom_logs_dir"
     assert config.logging.log_file == "custom_app.log"
-

@@ -50,7 +50,7 @@ def test_enums_values() -> None:
 
     # PositionSide
     assert PositionSide.LONG.value == "LONG"
-    assert PositionSide.SHORT.value == "SHORT"
+    assert PositionSide.SHORT == "SHORT"
 
     # OrderType
     assert OrderType.MARKET.value == "MARKET"
