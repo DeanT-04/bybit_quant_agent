@@ -1,0 +1,16 @@
+application:
+  name: Quant Platform
+  version: 0.1.0
+  environment: development
+
+exchange:
+  provider: bybit
+
+market:
+  type: usdt_perpetual
+
+storage:
+  data_directory: data/
+
+logging:
+  level: INFO

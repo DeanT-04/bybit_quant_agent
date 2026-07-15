@@ -1,0 +1,16 @@
+# Python cache
+__pycache__/
+
+# Environments and configs
+.env
+.venv/
+.pdm-python
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local directories
+logs/
+data/

@@ -1,0 +1,47 @@
+[project]
+name = "quant-platform"
+version = "0.1.0"
+description = "A professional-grade research and automated trading platform for cryptocurrency (Bybit only)."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2",
+    "python-dotenv",
+    "PyYAML",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+    "mypy",
+    "pytest-cov",
+    "types-PyYAML",
+]
+
+[tool.pdm.scripts]
+start = { cmd = "python -m quant_platform.main", env = { PYTHONPATH = "src" } }
+test = "pytest"
+lint = "ruff check ."
+typecheck = "mypy src tests"
+
+[tool.mypy]
+strict = true
+python_version = "3.13"
+mypy_path = "src"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "A", "C4", "RET", "SIM", "ARG", "PTH", "ERA", "PL", "RUF"]
+ignore = []
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
