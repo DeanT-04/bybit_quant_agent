@@ -8,6 +8,7 @@ dependencies = [
     "pydantic>=2",
     "python-dotenv",
     "PyYAML",
+    "requests",
 ]
 
 [build-system]
@@ -21,6 +22,7 @@ dev = [
     "mypy",
     "pytest-cov",
     "types-PyYAML",
+    "types-requests",
 ]
 
 [tool.pdm.scripts]

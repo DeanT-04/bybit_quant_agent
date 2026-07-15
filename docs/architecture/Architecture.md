@@ -30,6 +30,7 @@ bybit_quant_agent/ (Repository Root)
         ├── __init__.py
         ├── main.py      # Entry point and Composition Root
         ├── exceptions/  # Central error & exception framework
+        ├── http/        # Reusable HTTP transport layer
         └── [packages]   # 17 standard business modules
 ```
 
@@ -43,6 +44,7 @@ Each package under `src/quant_platform/` has a single, strictly defined scope of
 | `exceptions` | Central error and exception definitions (pure, no logging/IO dependencies). |
 | `config` | Configuration loading, schema definitions, validation. |
 | `logging` | Centralized Stream and Rotating File logging. |
+| `http` | Reusable, exchange-agnostic HTTP transport client (Session, pool, retry). |
 | `domain` | Business types, enums, constants, validation (pure domain). |
 | `exchange` | REST and WebSocket communication with Bybit, authentication. |
 | `storage` | Persistent storage integration, Parquet format, repository layers. |
@@ -68,7 +70,8 @@ Import hierarchy goes sequentially downward. Packages may only import from packa
 graph TD
     exceptions --> config
     config --> logging
-    logging --> domain
+    logging --> http
+    http --> domain
     domain --> exchange
     exchange --> storage
     storage --> market_data
@@ -99,6 +102,29 @@ graph TD
 - **Functions/Methods/Variables**: Lowercase snake_case (e.g., `load_config`).
 - **Constants**: Uppercase snake_case (e.g., `MAX_SYMBOL_LENGTH`).
 - **Test files**: Prefixed with `test_` (e.g., `test_logging.py`).
+
+---
+
+## HTTP Transport Layer
+The HTTP transport layer is a reusable, exchange-agnostic client package defined in `src/quant_platform/http/`.
+
+### Responsibilities
+- **Connection Reuse**: Enforces the use of `requests.Session` for persistent connections and automatic connection pooling.
+- **Retry Logic**: Configures native retry strategies using `urllib3.util.Retry` mounted to HTTP connections, avoiding manual sleep loops.
+- **Exception Isolation**: Catches all library-specific exceptions (e.g. `requests.exceptions.Timeout`, `requests.exceptions.ConnectionError`) and re-raises them as internal project-specific exceptions (`TimeoutError`, `ConnectionError`, `QuantPlatformError`).
+- **Domain Blindness**: Remains completely unaware of cryptocurrency, exchange API keys, order placement, or exchange endpoint formats.
+
+### Public API
+The package exposes only the following public interfaces:
+- `HttpClient`: Constructor takes `HttpConfig` and a `logging.Logger` through dependency injection.
+  - `get(url, params=None, headers=None)`: Performs a GET request with automatic timeout and retries, returning a typed `HttpResponse`.
+  - `post(url, data=None, json=None, headers=None)`: Performs a POST request with automatic timeout and retries, returning a typed `HttpResponse`.
+  - `close()`: Closes the underlying HTTP session connection pool.
+- `HttpConfig`: Configuration Pydantic model for pooling, timeouts, and retries.
+- `HttpResponse`: Dataclass response object carrying status, headers, text, and a `.json()` method.
+
+### Future Usage
+This package will be injected into the `exchange` and `market_data` packages to perform authenticated REST requests with Bybit.
 
 ---
 
