@@ -29,6 +29,7 @@ bybit_quant_agent/ (Repository Root)
     └── quant_platform/  # Python package root
         ├── __init__.py
         ├── main.py      # Entry point and Composition Root
+        ├── exceptions/  # Central error & exception framework
         └── [packages]   # 17 standard business modules
 ```
 
@@ -39,6 +40,7 @@ Each package under `src/quant_platform/` has a single, strictly defined scope of
 
 | Package | Responsibility |
 |---|---|
+| `exceptions` | Central error and exception definitions (pure, no logging/IO dependencies). |
 | `config` | Configuration loading, schema definitions, validation. |
 | `logging` | Centralized Stream and Rotating File logging. |
 | `domain` | Business types, enums, constants, validation (pure domain). |
@@ -64,6 +66,7 @@ Import hierarchy goes sequentially downward. Packages may only import from packa
 
 ```mermaid
 graph TD
+    exceptions --> config
     config --> logging
     logging --> domain
     domain --> exchange
@@ -99,7 +102,37 @@ graph TD
 
 ---
 
+## Exception Framework
+The platform uses a centralized exception framework defined in `src/quant_platform/exceptions/`.
+
+### Hierarchy
+- **QuantPlatformError**: The base class for all custom exceptions.
+  - **ConfigurationError**: Raised on configuration loading or validation failures.
+  - **LoggingError**: Raised on logging initialization or rotating file handler setup failures.
+  - **ValidationError**: Raised on domain-level constraints violations.
+  - **StorageError**: Raised on file read/write or parquet parsing failures.
+  - **MarketDataError**: Raised on market data retrieval or processing failures.
+  - **ResearchError**: Raised during notebook analysis or metrics extraction.
+  - **BacktestError**: Raised during historical backtest simulation.
+  - **ExecutionError**: Raised on order submission, cancellation, or synchronization failures.
+  - **RiskError**: Raised when risk controls or drawdown limits are violated.
+  - **ExchangeError**: Base class for exchange integration issues.
+    - **AuthenticationError**: Raised on API key/signature failures.
+    - **ConnectionError**: Raised on network connection drops or WebSocket disconnects.
+    - **TimeoutError**: Raised when API requests exceed timeframe limits.
+    - **RateLimitError**: Raised when Bybit rate limit responses (HTTP 429) are received.
+    - **InvalidResponseError**: Raised when response payloads cannot be parsed.
+
+### Extension Guidelines
+When defining new exceptions:
+1. **Never inherit from built-ins directly**: All new domain exceptions must inherit from `QuantPlatformError` (or one of its subclasses).
+2. **Pure Implementation**: Custom exceptions must not trigger any side-effects. Never perform logging or any I/O operations (file, database, network) inside exception constructors or string formatting methods.
+3. **Chaining Preservation**: Ensure that exceptions wrap root causes using Python's `raise ... from` syntax.
+
+---
+
 ## Future Extensions & Extension Rules
+
 When implementing future milestones:
 1. **Build inside the structure**: Place all new capabilities within the corresponding 17 pre-defined packages.
 2. **No new top-level packages**: The layout of `src/quant_platform/` established here is static and final.
